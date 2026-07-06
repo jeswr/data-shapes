@@ -1,0 +1,8 @@
+BASE <http://example.org/directional-language>
+VERSION "1.2"
+
+PREFIX ex: <http://example.org/test#>
+
+shape ex:TestShape -> ex:Product {
+	ex:label rdf:dirLangString [1..*] languageIn=["en" "ar"] message="Labels must be language-tagged and carry a base direction."@en--ltr .
+}

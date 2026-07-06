@@ -2,10 +2,11 @@ grammar SHACLC;
 
 shaclDoc            : directive* (nodeShape|shapeClass)* EOF;
 
-directive           : baseDecl | importsDecl | prefixDecl ;
+directive           : baseDecl | importsDecl | prefixDecl | versionDecl ;
 baseDecl            : KW_BASE  IRIREF ;
 importsDecl         : KW_IMPORTS IRIREF ;
 prefixDecl          : KW_PREFIX PNAME_NS IRIREF ;
+versionDecl         : KW_VERSION string ;
 
 shapeClass          : KW_SHAPE_CLASS iri nodeShapeBody ;
 nodeShape           : KW_SHAPE iri targetClass? nodeShapeBody ;
@@ -15,7 +16,8 @@ targetClass         : '->' iri+ ;
 constraint          : ( nodeOr+ | propertyShape ) '.' ;
 nodeOr              : nodeNot ( '|' nodeNot) * ;
 nodeNot             : negation? nodeValue ;
-nodeValue           : nodeParam '=' iriOrLiteralOrArray ;
+nodeValue           : nodeParam '=' iriOrLiteralOrArray
+                    | nodeKindValue ;
 
 propertyShape       : path ( propertyCount | propertyOr )* ;
 propertyOr          : propertyNot ( '|' propertyNot) * ;
@@ -25,10 +27,19 @@ propertyCount       : '[' propertyMinCount '..' propertyMaxCount ']' ;
 propertyMinCount    : INTEGER ;
 propertyMaxCount    : (INTEGER | '*') ;
 propertyType        : iri ;
-nodeKind            : 'BlankNode' | 'IRI' | 'Literal' | 'BlankNodeOrIRI' | 'BlankNodeOrLiteral' | 'IRIOrLiteral' ;
+nodeKind            : 'BlankNode' | 'IRI' | 'Literal' | 'BlankNodeOrIRI' |
+                      'BlankNodeOrLiteral' | 'IRIOrLiteral' | 'TripleTerm' ;
 shapeRef            : ATPNAME_LN | ATPNAME_NS | '@' IRIREF ;
-propertyValue       : propertyParam '=' iriOrLiteralOrArray ;
+propertyValue       : propertyParam '=' iriOrLiteralOrArray
+                    | nodeKindValue
+                    | reifierShapeValue ;
 negation            : '!' ;
+
+nodeKindValue       : 'nodeKind' '=' ( nodeKindMember | nodeKindList ) ;
+nodeKindList        : '[' nodeKindMember+ ']' ;
+nodeKindMember      : nodeKind | iri ;
+
+reifierShapeValue   : 'reifierShape' '=' ( iri | nodeShapeBody ) ;
 
 path                : pathAlternative ;
 pathAlternative     : pathSequence ( '|' pathSequence )* ;
@@ -40,7 +51,14 @@ pathMod             : '?' | '*' | '+' ;
 pathPrimary         : iri | '(' path ')' ;
 
 iriOrLiteralOrArray : iriOrLiteral | array ;
-iriOrLiteral        : iri | literal ;
+iriOrLiteral        : iri | literal | tripleTerm | reifiedTriple ;
+
+tripleTerm          : '<<(' ttSubject predicate ttObject ')>>' ;
+reifiedTriple       : '<<' ttSubject predicate ttObject reifier? '>>' ;
+reifier             : '~' iri ;
+ttSubject           : iri ;
+predicate           : iri | KW_A ;
+ttObject            : iri | literal | tripleTerm ;
 
 iri                 : IRIREF | prefixedName ;
 prefixedName        : PNAME_LN | PNAME_NS ;
@@ -48,7 +66,7 @@ prefixedName        : PNAME_LN | PNAME_NS ;
 literal             : rdfLiteral | numericLiteral | booleanLiteral ;
 booleanLiteral      : KW_TRUE | KW_FALSE ;
 numericLiteral      : INTEGER | DECIMAL | DOUBLE ;
-rdfLiteral          : string (LANGTAG | '^^' datatype)? ;
+rdfLiteral          : string (LANG_DIR | '^^' datatype)? ;
 datatype            : iri ;
 string              : STRING_LITERAL_LONG1 | STRING_LITERAL_LONG2 | STRING_LITERAL1 | STRING_LITERAL2 ;
 
@@ -56,30 +74,33 @@ array               : '[' iriOrLiteral* ']' ;
 
 nodeParam           : 'targetNode' | 'targetObjectsOf' | 'targetSubjectsOf' |
                       'deactivated' | 'severity' | 'message' |
-                      'class' | 'datatype' | 'nodeKind' |
+                      'class' | 'datatype' |
                       'minExclusive' | 'minInclusive' | 'maxExclusive' | 'maxInclusive' |
                       'minLength' | 'maxLength' | 'pattern' | 'flags' | 'languageIn' |
                       'equals' | 'disjoint' |
                       'closed' | 'ignoredProperties' | 'hasValue' | 'in' ;
 
 propertyParam       : 'deactivated' | 'severity' | 'message' |
-                      'class' | 'datatype' | 'nodeKind' |
+                      'class' | 'datatype' |
                       'minExclusive' | 'minInclusive' | 'maxExclusive' | 'maxInclusive' |
                       'minLength' | 'maxLength' | 'pattern' | 'flags' | 'languageIn' | 'uniqueLang' |
                       'equals' | 'disjoint' | 'lessThan' | 'lessThanOrEquals' |
                       'qualifiedValueShape' | 'qualifiedMinCount' | 'qualifiedMaxCount' | 'qualifiedValueShapesDisjoint' |
-                      'closed' | 'ignoredProperties' | 'hasValue' | 'in' ;
+                      'closed' | 'ignoredProperties' | 'hasValue' | 'in' |
+                      'reificationRequired' ;
 
 // Keywords
 KW_BASE             : 'BASE' ;
 KW_IMPORTS          : 'IMPORTS' ;
 KW_PREFIX           : 'PREFIX' ;
+KW_VERSION          : 'VERSION' ;
 
 KW_SHAPE_CLASS      : 'shapeClass' ;
 KW_SHAPE            : 'shape' ;
 
 KW_TRUE             : 'true' ;
 KW_FALSE            : 'false' ;
+KW_A                : 'a' ;
 
 // Terminals
 PASS                : [ \t\r\n]+ -> skip;
@@ -90,7 +111,7 @@ PNAME_NS            : PN_PREFIX? ':' ;
 PNAME_LN            : PNAME_NS PN_LOCAL ;
 ATPNAME_NS          : '@' PN_PREFIX? ':' ;
 ATPNAME_LN          : '@' PNAME_NS PN_LOCAL ;
-LANGTAG             : '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ;
+LANG_DIR            : '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ('--' [a-zA-Z]+)? ;
 INTEGER             : [+-]? [0-9]+ ;
 DECIMAL             : [+-]? [0-9]* '.' [0-9]+ ;
 DOUBLE              : [+-]? ([0-9]+ '.' [0-9]* EXPONENT | '.'? [0-9]+ EXPONENT) ;

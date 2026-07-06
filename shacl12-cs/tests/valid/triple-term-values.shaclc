@@ -1,0 +1,17 @@
+BASE <http://example.org/triple-term-values>
+VERSION "1.2"
+
+PREFIX ex: <http://example.org/test#>
+
+shape ex:ReifierNodeShape {
+	targetSubjectsOf=rdf:reifies .
+	rdf:reifies TripleTerm [1..1] .
+	ex:confidence xsd:decimal [0..1] minInclusive=0.0 maxInclusive=1.0 .
+	ex:value nodeKind=[IRI Literal TripleTerm] .
+}
+
+shape ex:MarriageShape {
+	targetNode=<< ex:alice ex:marriedTo ex:bob ~ ex:m1 >> .
+	rdf:reifies hasValue=<<( ex:alice ex:marriedTo ex:bob )>> .
+	ex:since xsd:date [1..1] .
+}

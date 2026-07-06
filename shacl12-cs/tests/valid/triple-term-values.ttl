@@ -1,0 +1,50 @@
+@base <http://example.org/triple-term-values> .
+@prefix ex: <http://example.org/test#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<>
+	a owl:Ontology ;
+.
+
+ex:ReifierNodeShape
+	a sh:NodeShape ;
+	sh:targetSubjectsOf rdf:reifies ;
+	sh:property [
+		sh:path rdf:reifies ;
+		sh:nodeKind sh:TripleTerm ;
+		sh:minCount 1 ;
+		sh:maxCount 1 ;
+	] ;
+	sh:property [
+		sh:path ex:confidence ;
+		sh:datatype xsd:decimal ;
+		sh:maxCount 1 ;
+		sh:minInclusive 0.0 ;
+		sh:maxInclusive 1.0 ;
+	] ;
+	sh:property [
+		sh:path ex:value ;
+		sh:nodeKind ( sh:IRI sh:Literal sh:TripleTerm ) ;
+	] ;
+.
+
+ex:m1 rdf:reifies <<( ex:alice ex:marriedTo ex:bob )>> .
+
+ex:MarriageShape
+	a sh:NodeShape ;
+	sh:targetNode ex:m1 ;
+	sh:property [
+		sh:path rdf:reifies ;
+		sh:hasValue <<( ex:alice ex:marriedTo ex:bob )>> ;
+	] ;
+	sh:property [
+		sh:path ex:since ;
+		sh:datatype xsd:date ;
+		sh:minCount 1 ;
+		sh:maxCount 1 ;
+	] ;
+.
