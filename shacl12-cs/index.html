@@ -50,7 +50,36 @@
 				prevRecShortname: "shacl-compact-syntax",
 				prevRecURI: "https://w3c.github.io/shacl/shacl-compact-syntax/",
 
-				wgPublicList: "public-shacl"
+				wgPublicList: "public-shacl",
+
+				localBiblio: {
+					"shacl12-core": {
+						title: "SHACL 1.2 Core",
+						href: "https://w3c.github.io/data-shapes/shacl12-core/",
+						publisher: "W3C",
+						status: "ED"
+					},
+					"rdf12-concepts": {
+						title: "RDF 1.2 Concepts and Abstract Syntax",
+						href: "https://www.w3.org/TR/rdf12-concepts/",
+						publisher: "W3C"
+					},
+					"rdf12-turtle": {
+						title: "RDF 1.2 Turtle",
+						href: "https://www.w3.org/TR/rdf12-turtle/",
+						publisher: "W3C"
+					},
+					"sparql12-query": {
+						title: "SPARQL 1.2 Query Language",
+						href: "https://www.w3.org/TR/sparql12-query/",
+						publisher: "W3C"
+					},
+					"rdf-shuttle": {
+						title: "Shuttle: a grammar formalism for bidirectional RDF syntax mappings",
+						href: "https://github.com/jeswr/rdf-shuttle",
+						publisher: "Jesse Wright"
+					}
+				}
 			};
 		</script>
     <link rel="stylesheet" href="style.css"/>
@@ -63,15 +92,34 @@
 				The syntax of SHACL is RDF.
 			</p>
 			<p>
-				This document defines the Compact Syntax for a subset of SHACL Core. 
+				This document defines the Compact Syntax for a subset of SHACL Core.
 				The Compact Syntax offers an alternative notation to the general RDF-based notations for SHACL,
 				aimed at human editors and readers.
+			</p>
+			<p>
+				It includes proposed support for RDF 1.2 [[rdf12-concepts]]: triple terms, reifiers and
+				reified triples, directional language tags, and the SHACL 1.2 constraint components that
+				build on them. Every new syntactic form is defined by a normative mapping to RDF 1.2 triples;
+				the additions are marked <span class="new12-flag">1.2</span> throughout.
 			</p>
 		</section>
 
 		<section id="sotd">
-			This specification was started by the RDF Data Shapes WG, was continued within the
-			SHACL Community Group, and is now being picked up by the Data Shapes WG.
+			<p>
+				This specification was started by the RDF Data Shapes WG, was continued within the
+				SHACL Community Group, and is now being picked up by the Data Shapes WG.
+			</p>
+			<p>
+				The support for RDF 1.2 [[rdf12-concepts]] defined in this document — the sections and
+				productions marked <span class="new12-flag">1.2</span> — is an editors' proposal that has
+				not yet been reviewed or adopted by the Working Group. It is not, and does not define,
+				a standard.
+			</p>
+			<p>
+				A machine-formal, bidirectional version of the syntax-to-triples mapping for the RDF 1.2
+				additions is being developed in the Shuttle grammar formalism [[rdf-shuttle]] and will be
+				linked from this document when available.
+			</p>
 		</section>
 
     <section id="specifications" class="introductory" data-include="../shacl12-common/specifications.html"></section>
@@ -118,6 +166,11 @@
 						<td><code>http://example.com/ns#</code></td>
 					</tr>
 				</table>
+				<p>
+					Syntax productions and mapping rules that are new in, or updated for, RDF 1.2 are marked
+					<span class="new12-flag">1.2</span>. Terminology for <em>triple term</em>, <em>reifier</em>,
+					<em>base direction</em>, and <em>language-tagged string</em> is as defined by [[rdf12-concepts]].
+				</p>
 			</section>
 			
 			<section class="informative" id="example">
@@ -213,9 +266,201 @@ ex:Person
 	a sh:NodeShape, rdfs:Class ;
 	...</pre>
 				<p>
-					The SHACL Compact Syntax can be used both as an exchange format but also as temporary editing input format. 
+					The SHACL Compact Syntax can be used both as an exchange format but also as temporary editing input format.
 					If SHACL Compact Syntax files are saved, the recommended file ending is <code>.shaclc</code>.
 				</p>
+			</section>
+
+			<section id="rdf12">
+				<h3><span class="new12-flag">1.2</span> Support for RDF 1.2</h3>
+				<p>
+					RDF 1.2 [[rdf12-concepts]] introduces three features that are directly relevant to
+					shape declarations:
+				</p>
+				<ul>
+					<li>
+						<strong>Triple terms</strong> — RDF terms of the form
+						<code>&lt;&lt;( subject predicate object )&gt;&gt;</code> that denote a triple and may
+						occur in the object position of other triples;
+					</li>
+					<li>
+						<strong>Reifiers</strong> — nodes related to a triple term through the
+						<code>rdf:reifies</code> property, providing the RDF 1.2 idiom for making statements
+						about statements; Turtle 1.2 [[rdf12-turtle]] provides the reified-triple shorthand
+						<code>&lt;&lt; s p o ~ r &gt;&gt;</code> for them;
+					</li>
+					<li>
+						<strong>Directional language tags</strong> — language-tagged strings that additionally
+						carry a base direction (<code>ltr</code> or <code>rtl</code>), written
+						<code>"..."@lang--dir</code> and typed <code>rdf:dirLangString</code>.
+					</li>
+				</ul>
+				<p>
+					SHACL 1.2 Core [[shacl12-core]] correspondingly adds the node kind <code>sh:TripleTerm</code>,
+					list-valued <code>sh:nodeKind</code>, and the constraint component
+					<code>sh:ReifierShapeConstraintComponent</code> with parameters <code>sh:reifierShape</code>
+					and <code>sh:reificationRequired</code>, and admits <code>rdf:dirLangString</code> literals
+					wherever language-tagged strings are admitted (e.g. <code>sh:message</code>, <code>sh:name</code>,
+					<code>sh:description</code>).
+				</p>
+				<p>
+					This document extends the SHACL Compact Syntax so that these features can be written compactly.
+					The extensions are conservative: every SHACL Compact Syntax document that is valid without the
+					productions marked <span class="new12-flag">1.2</span> remains valid and maps to the same triples.
+				</p>
+
+				<section id="rdf12-summary">
+					<h4>Summary of RDF 1.2 Additions</h4>
+					<table class="term-table">
+						<tr>
+							<th>Compact syntax form</th>
+							<th>RDF 1.2 construct</th>
+							<th>Mapping</th>
+						</tr>
+						<tr>
+							<td><code>VERSION "1.2"</code></td>
+							<td>Version declaration (as in Turtle 1.2)</td>
+							<td>No triples produced; declares the syntax version of the document</td>
+						</tr>
+						<tr>
+							<td><code>"text"@lang--ltr</code>, <code>"text"@lang--rtl</code></td>
+							<td>Directional language-tagged string</td>
+							<td>A literal with datatype <code>rdf:dirLangString</code>, the given language tag,
+								and base direction <code>ltr</code> or <code>rtl</code></td>
+						</tr>
+						<tr>
+							<td><code>&lt;&lt;( s p o )&gt;&gt;</code></td>
+							<td>Triple term</td>
+							<td>The triple term itself, used directly as the object of the triple being produced
+								(e.g. as a value of <code>sh:targetNode</code>, <code>sh:hasValue</code>, or a member
+								of an <code>sh:in</code> list); no additional triples produced</td>
+						</tr>
+						<tr>
+							<td><code>&lt;&lt; s p o ~ r &gt;&gt;</code></td>
+							<td>Reified triple with reifier <code>r</code></td>
+							<td>Produces <code>r rdf:reifies &lt;&lt;( s p o )&gt;&gt;</code>; the value of the
+								surrounding construct is <code>r</code></td>
+						</tr>
+						<tr>
+							<td><code>TripleTerm</code> (node kind)</td>
+							<td>Triple-term node kind</td>
+							<td><code>?shape sh:nodeKind sh:TripleTerm</code></td>
+						</tr>
+						<tr>
+							<td><code>nodeKind=[IRI Literal TripleTerm]</code></td>
+							<td>List-valued <code>sh:nodeKind</code> (SHACL 1.2)</td>
+							<td><code>?shape sh:nodeKind ( sh:IRI sh:Literal sh:TripleTerm )</code></td>
+						</tr>
+						<tr>
+							<td><code>reifierShape=ex:Shape</code> or <code>reifierShape={ … }</code></td>
+							<td>Reifier shape constraint (SHACL 1.2)</td>
+							<td><code>?property sh:reifierShape ?shape</code>, with the inline body mapped
+								onto a new blank node shape</td>
+						</tr>
+						<tr>
+							<td><code>reificationRequired=true</code></td>
+							<td>Required reification (SHACL 1.2)</td>
+							<td><code>?property sh:reificationRequired true</code></td>
+						</tr>
+					</table>
+				</section>
+
+				<section class="informative" id="rdf12-example">
+					<h4>An Example with RDF 1.2 Features</h4>
+					<p>
+						The following example exercises each of the RDF 1.2 additions: a version declaration,
+						a directional language tag in a message, the <code>TripleTerm</code> node kind,
+						a triple term as a constraint value, a reified triple as a target, and a reifier shape.
+					</p>
+					<pre class="example-shapes">
+BASE &lt;http://example.com/ns&gt;
+VERSION "1.2"
+
+PREFIX ex: &lt;http://example.com/ns#&gt;
+
+shape ex:PersonShape -&gt; ex:Person {
+	ex:age xsd:integer [1..1]
+		reificationRequired=true
+		reifierShape={
+			ex:author IRI [1..1] .
+			ex:date xsd:date [1..1] .
+		}
+		message="Age statements must carry provenance."@en--ltr .
+}
+
+shape ex:ReifierNodeShape {
+	targetSubjectsOf=rdf:reifies .
+	rdf:reifies TripleTerm [1..1] .
+}
+
+shape ex:MarriageShape {
+	targetNode=&lt;&lt; ex:alice ex:marriedTo ex:bob ~ ex:m1 &gt;&gt; .
+	rdf:reifies hasValue=&lt;&lt;( ex:alice ex:marriedTo ex:bob )&gt;&gt; .
+	ex:since xsd:date [1..1] .
+}</pre>
+					<p>Using the mapping defined in this document, this example produces the following Turtle 1.2 [[rdf12-turtle]] graph:</p>
+					<pre class="example-shapes-ttl">
+@base &lt;http://example.com/ns&gt; .
+@prefix ex: &lt;http://example.com/ns#&gt; .
+@prefix owl: &lt;http://www.w3.org/2002/07/owl#&gt; .
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+@prefix sh: &lt;http://www.w3.org/ns/shacl#&gt; .
+@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+&lt;http://example.com/ns&gt; rdf:type owl:Ontology .
+
+ex:PersonShape
+	a sh:NodeShape ;
+	sh:targetClass ex:Person ;
+	sh:property [
+		sh:path ex:age ;
+		sh:datatype xsd:integer ;
+		sh:minCount 1 ;
+		sh:maxCount 1 ;
+		sh:reificationRequired true ;
+		sh:reifierShape [
+			sh:property [
+				sh:path ex:author ;
+				sh:nodeKind sh:IRI ;
+				sh:minCount 1 ;
+				sh:maxCount 1 ;
+			] ;
+			sh:property [
+				sh:path ex:date ;
+				sh:datatype xsd:date ;
+				sh:minCount 1 ;
+				sh:maxCount 1 ;
+			] ;
+		] ;
+		sh:message "Age statements must carry provenance."@en--ltr ;
+	] .
+
+ex:ReifierNodeShape
+	a sh:NodeShape ;
+	sh:targetSubjectsOf rdf:reifies ;
+	sh:property [
+		sh:path rdf:reifies ;
+		sh:nodeKind sh:TripleTerm ;
+		sh:minCount 1 ;
+		sh:maxCount 1 ;
+	] .
+
+ex:m1 rdf:reifies &lt;&lt;( ex:alice ex:marriedTo ex:bob )&gt;&gt; .
+
+ex:MarriageShape
+	a sh:NodeShape ;
+	sh:targetNode ex:m1 ;
+	sh:property [
+		sh:path rdf:reifies ;
+		sh:hasValue &lt;&lt;( ex:alice ex:marriedTo ex:bob )&gt;&gt; ;
+	] ;
+	sh:property [
+		sh:path ex:since ;
+		sh:datatype xsd:date ;
+		sh:minCount 1 ;
+		sh:maxCount 1 ;
+	] .</pre>
+				</section>
 			</section>
 		</section>
 		
@@ -233,10 +478,11 @@ grammar SHACLC;
 
 shaclDoc            : directive* (nodeShape|shapeClass)* EOF;
 
-directive           : baseDecl | importsDecl | prefixDecl ;
+<span class="new12">directive           : baseDecl | importsDecl | prefixDecl | versionDecl ;</span>
 baseDecl            : KW_BASE  IRIREF ;
 importsDecl         : KW_IMPORTS IRIREF ;
 prefixDecl          : KW_PREFIX PNAME_NS IRIREF ;
+<span class="new12">versionDecl         : KW_VERSION string ;</span>
 
 nodeShape           : KW_SHAPE iri targetClass? nodeShapeBody ;
 shapeClass          : KW_SHAPE_CLASS iri nodeShapeBody ;
@@ -246,7 +492,8 @@ targetClass         : '->' iri+ ;
 constraint          : ( nodeOr+ | propertyShape ) '.' ;
 nodeOr              : nodeNot ( '|' nodeNot) * ;
 nodeNot             : negation? nodeValue ;
-nodeValue           : nodeParam '=' iriOrLiteralOrArray ;
+<span class="new12">nodeValue           : nodeParam '=' iriOrLiteralOrArray
+                    | nodeKindValue ;</span>
 
 propertyShape       : path ( propertyCount | propertyOr )* ;
 propertyOr          : propertyNot ( '|' propertyNot) * ;
@@ -256,10 +503,19 @@ propertyCount       : '[' propertyMinCount '..' propertyMaxCount ']' ;
 propertyMinCount    : INTEGER ;
 propertyMaxCount    : (INTEGER | '*') ;
 propertyType        : iri ;
-nodeKind            : 'BlankNode' | 'IRI' | 'Literal' | 'BlankNodeOrIRI' | 'BlankNodeOrLiteral' | 'IRIOrLiteral' ;
+<span class="new12">nodeKind            : 'BlankNode' | 'IRI' | 'Literal' | 'BlankNodeOrIRI' |
+                      'BlankNodeOrLiteral' | 'IRIOrLiteral' | 'TripleTerm' ;</span>
 shapeRef            : ATPNAME_LN | ATPNAME_NS | '@' IRIREF ;
-propertyValue       : propertyParam '=' iriOrLiteralOrArray ;
+<span class="new12">propertyValue       : propertyParam '=' iriOrLiteralOrArray
+                    | nodeKindValue
+                    | reifierShapeValue ;</span>
 negation            : '!' ;
+
+<span class="new12">nodeKindValue       : 'nodeKind' '=' ( nodeKindMember | nodeKindList ) ;
+nodeKindList        : '[' nodeKindMember+ ']' ;
+nodeKindMember      : nodeKind | iri ;
+
+reifierShapeValue   : 'reifierShape' '=' ( iri | nodeShapeBody ) ;</span>
 
 path                : pathAlternative ;
 pathAlternative     : pathSequence ( '|' pathSequence )* ;
@@ -271,7 +527,14 @@ pathMod             : '?' | '*' | '+' ;
 pathPrimary         : iri | '(' path ')' ;
 
 iriOrLiteralOrArray : iriOrLiteral | array ;
-iriOrLiteral        : iri | literal ;
+<span class="new12">iriOrLiteral        : iri | literal | tripleTerm | reifiedTriple ;
+
+tripleTerm          : '&lt;&lt;(' ttSubject predicate ttObject ')>>' ;
+reifiedTriple       : '&lt;&lt;' ttSubject predicate ttObject reifier? '>>' ;
+reifier             : '~' iri ;
+ttSubject           : iri ;
+predicate           : iri | KW_A ;
+ttObject            : iri | literal | tripleTerm ;</span>
 
 iri                 : IRIREF | prefixedName ;
 prefixedName        : PNAME_LN | PNAME_NS ;
@@ -279,38 +542,41 @@ prefixedName        : PNAME_LN | PNAME_NS ;
 literal             : rdfLiteral | numericLiteral | booleanLiteral ;
 booleanLiteral      : KW_TRUE | KW_FALSE ;
 numericLiteral      : INTEGER | DECIMAL | DOUBLE ;
-rdfLiteral          : string (LANGTAG | '^^' datatype)? ;
+<span class="new12">rdfLiteral          : string (LANG_DIR | '^^' datatype)? ;</span>
 datatype            : iri ;
 string              : STRING_LITERAL_LONG1 | STRING_LITERAL_LONG2 | STRING_LITERAL1 | STRING_LITERAL2 ;
 
 array               : '[' iriOrLiteral* ']' ;
 
-nodeParam           : 'targetNode' | 'targetObjectsOf' | 'targetSubjectsOf' |
+<span class="new12">nodeParam           : 'targetNode' | 'targetObjectsOf' | 'targetSubjectsOf' |
                       'deactivated' | 'severity' | 'message' |
-                      'class' | 'datatype' | 'nodeKind' |
+                      'class' | 'datatype' |
                       'minExclusive' | 'minInclusive' | 'maxExclusive' | 'maxInclusive' |
                       'minLength' | 'maxLength' | 'pattern' | 'flags' | 'languageIn' |
                       'equals' | 'disjoint' |
                       'closed' | 'ignoredProperties' | 'hasValue' | 'in' ;
 
 propertyParam       : 'deactivated' | 'severity' | 'message' |
-                      'class' | 'datatype' | 'nodeKind' |
+                      'class' | 'datatype' |
                       'minExclusive' | 'minInclusive' | 'maxExclusive' | 'maxInclusive' |
                       'minLength' | 'maxLength' | 'pattern' | 'flags' | 'languageIn' | 'uniqueLang' |
                       'equals' | 'disjoint' | 'lessThan' | 'lessThanOrEquals' |
                       'qualifiedValueShape' | 'qualifiedMinCount' | 'qualifiedMaxCount' | 'qualifiedValueShapesDisjoint' |
-                      'closed' | 'ignoredProperties' | 'hasValue' | 'in' ;
+                      'closed' | 'ignoredProperties' | 'hasValue' | 'in' |
+                      'reificationRequired' ;</span>
 
 // Keywords
 KW_BASE             : 'BASE' ;
 KW_IMPORTS          : 'IMPORTS' ;
 KW_PREFIX           : 'PREFIX' ;
+<span class="new12">KW_VERSION          : 'VERSION' ;</span>
 
 KW_SHAPE_CLASS      : 'shapeClass' ;
 KW_SHAPE            : 'shape' ;
 
 KW_TRUE             : 'true' ;
 KW_FALSE            : 'false' ;
+<span class="new12">KW_A                : 'a' ;</span>
 
 // Terminals
 PASS                : [ \t\r\n]+ -> skip;
@@ -321,7 +587,7 @@ PNAME_NS            : PN_PREFIX? ':' ;
 PNAME_LN            : PNAME_NS PN_LOCAL ;
 ATPNAME_NS          : '@' PN_PREFIX? ':' ;
 ATPNAME_LN          : '@' PNAME_NS PN_LOCAL ;
-LANGTAG             : '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ;
+<span class="new12">LANG_DIR            : '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ('--' [a-zA-Z]+)? ;</span>
 INTEGER             : [+-]? [0-9]+ ;
 DECIMAL             : [+-]? [0-9]* '.' [0-9]+ ;
 DOUBLE              : [+-]? ([0-9]+ '.' [0-9]* EXPONENT | '.'? [0-9]+ EXPONENT) ;
@@ -347,6 +613,56 @@ fragment HEX        : [0-9] | [A-F] | [a-f] ;
 fragment PN_LOCAL_ESC: '\\' ('_' | '~' | '.' | '-' | '!' | '$' | '&amp;' | '\'' | '(' | ')' | '*' | '+' | ','
                        | ';' | '=' | '/' | '?' | '#' | '@' | '%') ;
 			</pre>
+			<p>
+				The grammar is also available as a standalone file: <a href="SHACLC.g4"><code>SHACLC.g4</code></a>.
+			</p>
+			<p>
+				The following notes apply to the productions marked <span class="new12-flag">1.2</span>:
+			</p>
+			<ul>
+				<li>
+					<span class="new12-flag">1.2</span>
+					<strong>Lexing <code>&lt;&lt;</code> and <code>&lt;&lt;(</code>.</strong>
+					The <code>IRIREF</code> terminal excludes <code>&lt;</code> from its body, so an input
+					beginning <code>&lt;&lt;</code> can never be the start of an IRI reference. Lexers
+					must recognize <code>&lt;&lt;(</code> and <code>)&gt;&gt;</code> in preference to
+					<code>&lt;&lt;</code> and <code>&gt;&gt;</code> (longest match), exactly as in
+					Turtle 1.2 [[rdf12-turtle]].
+				</li>
+				<li>
+					<span class="new12-flag">1.2</span>
+					<strong><code>LANG_DIR</code> replaces <code>LANGTAG</code>.</strong>
+					The terminal follows the Turtle 1.2 <code>LANG_DIR</code> production. When the
+					<code>'--'</code> suffix is present, its value MUST be <code>ltr</code> or
+					<code>rtl</code> (lowercase); any other value is a syntax error.
+				</li>
+				<li>
+					<span class="new12-flag">1.2</span>
+					<strong>Subjects of triple terms are IRIs.</strong>
+					Unlike Turtle 1.2, the compact syntax provides no blank node label syntax, so
+					<code>ttSubject</code> and <code>reifier</code> admit only IRIs. This is not a
+					practical restriction for shapes graphs: a blank node in a shapes graph cannot
+					co-refer with any node of a data graph, so blank-node subjects and reifiers would
+					not produce useful targets or values.
+				</li>
+				<li>
+					<span class="new12-flag">1.2</span>
+					<strong><code>a</code> as predicate.</strong>
+					The keyword <code>a</code> is admitted only in the <code>predicate</code> position
+					inside <code>tripleTerm</code> and <code>reifiedTriple</code> and maps to
+					<code>rdf:type</code>, as in Turtle.
+				</li>
+				<li>
+					<span class="new12-flag">1.2</span>
+					<strong><code>nodeKind</code> and <code>reifierShape</code> parameters.</strong>
+					The parameter name <code>nodeKind</code> is removed from the
+					<code>nodeParam</code>/<code>propertyParam</code> alternatives and handled by the
+					dedicated <code>nodeKindValue</code> production; likewise <code>reifierShape</code>
+					is handled by <code>reifierShapeValue</code>. Documents that used
+					<code>nodeKind=sh:IRI</code> previously remain valid, since an
+					<code>iri</code> is admitted as a <code>nodeKindMember</code>.
+				</li>
+			</ul>
 			<p id="rules">
 				A parser for the SHACL Compact Syntax receives as input a (text) document plus an optional <em>base URI</em>
 				which is used as initial value for the variable <code>?baseURI</code>.
@@ -375,7 +691,8 @@ fragment PN_LOCAL_ESC: '\\' ('_' | '~' | '.' | '-' | '!' | '$' | '&amp;' | '\'' 
 				</tr>
 			</table>
 			<p>
-				It then produces a new RDF graph with the triples produced by the following rules.
+				It then produces a new RDF graph — an RDF 1.2 graph [[rdf12-concepts]] when the productions
+				marked <span class="new12-flag">1.2</span> are used — with the triples produced by the following rules.
 			</p>
 			<p>
 				<b>baseDecl</b>: set <code>?baseURI</code> to the IRI specified by <a href="#rule-IRIREF"><code>IRIREF</code></a>.
@@ -386,6 +703,14 @@ fragment PN_LOCAL_ESC: '\\' ('_' | '~' | '.' | '-' | '!' | '$' | '&amp;' | '\'' 
 			<p>
 				<b>prefixDecl</b>: add to the prefix mapping a mapping from the prefix <code>PNAME_NS</code> (without the ':') to
 				the namespace specified by <a href="#rule-IRIREF"><code>IRIREF</code></a>.
+			</p>
+			<p class="rule" id="rule-versionDecl">
+				<span class="new12-flag">1.2</span>
+				<b>versionDecl</b>: Produces no triples. The string value declares the syntax version of
+				the document and, if present, MUST be <code>"1.2"</code>. A document that uses any of the
+				syntactic forms marked <span class="new12-flag">1.2</span> SHOULD include a version
+				declaration. Parsers that do not support the RDF 1.2 additions MAY reject documents with a
+				version declaration of <code>"1.2"</code>.
 			</p>
 			<p>
 				Once the whole document has been completed, produce a triple <code>?baseURI rdf:type owl:Ontology</code>
@@ -463,14 +788,57 @@ fragment PN_LOCAL_ESC: '\\' ('_' | '~' | '.' | '-' | '!' | '$' | '&amp;' | '\'' 
 				Then produce a triple <code>?property sh:node ?node</code>. 
 			</p>
 			<p class="rule" id="rule-propertyType">
-				<b>propertyType</b>: Let <code>?iri</code> be the IRI derived from the <code>propertyType</code> using <a href="#rule-iri"><code>iri</code></a>.
-				If <code>?iri</code> is one of the RDF datatypes supported by SPARQL 1.1 (such as <code>xsd:string</code>) then produce a triple
+				<span class="new12-flag">1.2</span>
+				<b>propertyType</b> (updated): Let <code>?iri</code> be the IRI derived from the <code>propertyType</code> using <a href="#rule-iri"><code>iri</code></a>.
+				If <code>?iri</code> is one of the RDF datatypes supported by SPARQL 1.2 [[sparql12-query]] —
+				which include the XSD datatypes supported by SPARQL 1.1 (such as <code>xsd:string</code>)
+				together with <code>rdf:langString</code> and <code>rdf:dirLangString</code> — then produce a triple
 				<code>?property sh:datatype ?iri</code>, otherwise <code>?property sh:class ?iri</code>.
 			</p>
 			<p class="rule" id="rule-nodeKind">
-				<b>nodeKind</b>: Produce a triple <code>?property sh:nodeKind ?nodeKind</code> where
+				<span class="new12-flag">1.2</span>
+				<b>nodeKind</b> (updated): Produce a triple <code>?property sh:nodeKind ?nodeKind</code> where
 				<code>?nodeKind</code> is the IRI produced by concatenating the <code>sh</code> namespace
 				with the text value of <code>nodeKind</code> (e.g., <code>sh:Literal</code>).
+				The admitted keywords now include <code>TripleTerm</code>, which maps to
+				<code>sh:TripleTerm</code> [[shacl12-core]].
+			</p>
+			<p class="rule" id="rule-nodeKindValue">
+				<span class="new12-flag">1.2</span>
+				<b>nodeKindValue</b>: Each <code>nodeKindMember</code> maps to a term
+				<code>?m</code> as follows: a <code>nodeKind</code> keyword <code>K</code> maps to the
+				IRI <code>sh:K</code>; an <code>iri</code> maps to the derived IRI.
+				If the value is a single <code>nodeKindMember</code>, produce the triple
+				<code>?shape sh:nodeKind ?m</code>; <code>?m</code> must then be one of the seven
+				instances of <code>sh:NodeKind</code> (<code>sh:BlankNode</code>, <code>sh:IRI</code>,
+				<code>sh:Literal</code>, <code>sh:BlankNodeOrIRI</code>,
+				<code>sh:BlankNodeOrLiteral</code>, <code>sh:IRIOrLiteral</code>,
+				<code>sh:TripleTerm</code>).
+				If the value is a <code>nodeKindList</code>, produce a SHACL list <code>?list</code>
+				whose members are the <code>?m</code> in document order, and produce the triple
+				<code>?shape sh:nodeKind ?list</code>; each member must then be one of
+				<code>sh:BlankNode</code>, <code>sh:IRI</code>, <code>sh:Literal</code>, or
+				<code>sh:TripleTerm</code>, per the SHACL 1.2 syntax rules for list-valued
+				<code>sh:nodeKind</code> [[shacl12-core]].
+			</p>
+			<p class="rule" id="rule-reifierShapeValue">
+				<span class="new12-flag">1.2</span>
+				<b>reifierShapeValue</b>: If the value is an <code>iri</code>, produce the triple
+				<code>?property sh:reifierShape ?iri</code>.
+				If the value is a <code>nodeShapeBody</code>, produce a new blank node
+				<code>?r</code>, produce the triple <code>?property sh:reifierShape ?r</code>, and handle
+				the <code>nodeShapeBody</code> using <code>?r</code> as the context shape.
+				This parameter is only admitted within property shapes; per [[shacl12-core]], when a
+				property shape has a value for <code>sh:reifierShape</code>, its <code>sh:path</code>
+				value is constrained to an IRI (not a path expression).
+				The parameter may be repeated to associate multiple reifier shapes.
+			</p>
+			<p class="rule" id="rule-reificationRequired">
+				<span class="new12-flag">1.2</span>
+				<b>reificationRequired</b>: Handled by the unchanged <code>propertyValue</code> rule
+				(concatenating the <code>sh</code> namespace with the parameter name): produce the triple
+				<code>?property sh:reificationRequired ?object</code>, where <code>?object</code> must be
+				a literal with datatype <code>xsd:boolean</code>.
 			</p>
 			<p class="rule" id="rule-shapeRef">
 				<b>shapeRef</b>: Produce a triple <code>?property sh:node ?node</code> where
@@ -511,13 +879,95 @@ fragment PN_LOCAL_ESC: '\\' ('_' | '~' | '.' | '-' | '!' | '$' | '&amp;' | '\'' 
 				Otherwise, return the path derived from <a href="#rule-path">path</a>.
 			</p>
 			<p class="rule" id="rule-iriOrLiteralOrArray">
-				<b>iriOrLiteralOrArray</b>: If there is an <code>array</code>, produce and return an RDF list
-				where each <a href="#rule-iriOrLiteral"><code>iriOrLiteral</code></a> is a member.
+				<span class="new12-flag">1.2</span>
+				<b>iriOrLiteralOrArray</b> (updated): If there is an <code>array</code>, produce and return an RDF list
+				where each <a href="#rule-iriOrLiteral"><code>iriOrLiteral</code></a> is a member; members may
+				be triple terms or reifiers derived from reified triples, per
+				<a href="#rule-iriOrLiteral"><code>iriOrLiteral</code></a>.
 				Otherwise, return <a href="#rule-iriOrLiteral"><code>iriOrLiteral</code></a> for <code>iriOrLiteral</code>.
 			</p>
 			<p class="rule" id="rule-iriOrLiteral">
-				<b>iriOrLiteral</b>: If there is an <code>iri</code>, return the node derived from <a href="#rule-iri"><code>iri</code></a>.
-				Otherwise, apply Turtle's parsing rules to turn the string <code>literal</code> into an RDF literal.
+				<span class="new12-flag">1.2</span>
+				<b>iriOrLiteral</b> (updated): If there is an <code>iri</code>, return the node derived from <a href="#rule-iri"><code>iri</code></a>.
+				If there is a <code>literal</code>, apply Turtle's parsing rules to turn the string
+				<code>literal</code> into an RDF literal, as refined by
+				<a href="#rule-rdfLiteral"><code>rdfLiteral</code></a>.
+				If there is a <code>tripleTerm</code>, return the triple term derived from
+				<a href="#rule-tripleTerm"><code>tripleTerm</code></a>.
+				If there is a <code>reifiedTriple</code>, return the reifier returned by
+				<a href="#rule-reifiedTriple"><code>reifiedTriple</code></a>.
+				Consequently, triple terms and reified triples may appear wherever a value is expected —
+				in particular as values of <code>targetNode=</code>, <code>hasValue=</code>, and as
+				members of <code>in=[…]</code> arrays — and the resulting term becomes the object of the
+				produced triple (e.g. <code>?shape sh:targetNode ?term</code>).
+			</p>
+			<p class="rule" id="rule-rdfLiteral">
+				<span class="new12-flag">1.2</span>
+				<b>rdfLiteral</b>:
+				Let <code>?lex</code> be the unescaped value of <code>string</code>.
+				If neither <code>LANG_DIR</code> nor a datatype is present, return the literal
+				<code>?lex</code> with datatype <code>xsd:string</code>.
+				If a datatype is present, return the literal <code>?lex</code> with that datatype;
+				it is an error for the datatype IRI to be <code>rdf:langString</code> or
+				<code>rdf:dirLangString</code>, since those literals cannot be formed without a
+				language tag.
+				If <code>LANG_DIR</code> is present and contains no <code>'--'</code>, return the
+				language-tagged string <code>?lex</code> with the given language tag (lowercased) and
+				datatype <code>rdf:langString</code>.
+				If <code>LANG_DIR</code> is present and contains <code>'--'</code>, let
+				<code>?lang</code> be the part between the leading <code>'@'</code> and the
+				<code>'--'</code> (lowercased) and <code>?dir</code> be the part after the
+				<code>'--'</code>; <code>?dir</code> MUST be <code>ltr</code> or <code>rtl</code>.
+				Return the directional language-tagged string with lexical form <code>?lex</code>,
+				language tag <code>?lang</code>, base direction <code>?dir</code>, and datatype
+				<code>rdf:dirLangString</code> [[rdf12-concepts]].
+			</p>
+			<p class="rule" id="rule-tripleTerm">
+				<span class="new12-flag">1.2</span>
+				<b>tripleTerm</b>: Let <code>?s</code> be the IRI derived from
+				<a href="#rule-ttSubject"><code>ttSubject</code></a>, <code>?p</code> the IRI derived from
+				<a href="#rule-predicate"><code>predicate</code></a>, and <code>?o</code> the term derived
+				from <a href="#rule-ttObject"><code>ttObject</code></a>.
+				Return the RDF 1.2 <em>triple term</em> composed of <code>(?s, ?p, ?o)</code>.
+				This rule produces no triples: a triple term is a term, and asserts nothing.
+				Note that in RDF 1.2 a triple term may occur only in the object position of a triple;
+				every position in which the grammar admits <code>tripleTerm</code> maps to an object
+				position (including membership in RDF lists, where the member is the object of an
+				<code>rdf:first</code> triple).
+			</p>
+			<p class="rule" id="rule-reifiedTriple">
+				<span class="new12-flag">1.2</span>
+				<b>reifiedTriple</b>: Let <code>?tt</code> be the triple term composed from
+				<code>ttSubject</code>, <code>predicate</code>, and <code>ttObject</code> as in
+				<a href="#rule-tripleTerm"><code>tripleTerm</code></a>.
+				If the <code>reifier</code> is present, let <code>?r</code> be the IRI derived from its
+				<code>iri</code>; otherwise let <code>?r</code> be a new blank node.
+				Produce the triple <code>?r rdf:reifies ?tt</code> and return <code>?r</code>.
+			</p>
+			<p class="note">
+				The <code>rdf:reifies</code> triple is produced in the <em>shapes</em> graph. With an
+				explicit IRI reifier this both documents the intended referent of the reifier and gives
+				constraints such as <code>targetNode=&lt;&lt; s p o ~ r &gt;&gt;</code> a well-defined
+				value (<code>r</code>) that can co-refer with nodes in a data graph. An anonymous
+				reified triple (without <code>~ r</code>) yields a fresh blank node, which cannot match
+				any node of a data graph; it is therefore rarely useful and SHOULD be avoided.
+			</p>
+			<p class="rule" id="rule-ttSubject">
+				<span class="new12-flag">1.2</span>
+				<b>ttSubject</b>: Return the IRI derived from <a href="#rule-iri"><code>iri</code></a>.
+			</p>
+			<p class="rule" id="rule-predicate">
+				<span class="new12-flag">1.2</span>
+				<b>predicate</b>: If the token is <code>a</code>, return <code>rdf:type</code>.
+				Otherwise return the IRI derived from <a href="#rule-iri"><code>iri</code></a>.
+			</p>
+			<p class="rule" id="rule-ttObject">
+				<span class="new12-flag">1.2</span>
+				<b>ttObject</b>: If there is an <code>iri</code>, return the derived IRI.
+				If there is a <code>literal</code>, return the literal derived from
+				<a href="#rule-rdfLiteral"><code>rdfLiteral</code></a> and the literal rules.
+				If there is a <code>tripleTerm</code>, return the (nested) triple term derived from
+				<a href="#rule-tripleTerm"><code>tripleTerm</code></a>.
 			</p>
 			<p class="rule" id="rule-iri">
 				<b>iri</b>: If there is a <code>IRIREF</code>, return the result of <a href="#rule-IRIREF"><code>IRIREF</code></a>.
@@ -529,11 +979,44 @@ fragment PN_LOCAL_ESC: '\\' ('_' | '~' | '.' | '-' | '!' | '$' | '&amp;' | '\'' 
 				and the trailing <code>&gt;</code>, turning relative IRIs into absolute IRIs using the current <code>?baseURI</code>.
 			</p>
 			<p>
-				Developers may find the <a href="https://github.com/w3c/data-shapes/tree/gh-pages/shacl12-compact-syntax/tests">Test Cases</a> useful.
+				Developers may find the <a href="https://github.com/w3c/data-shapes/tree/gh-pages/shacl12-cs/tests">Test Cases</a> useful.
 				Each test consists of a <code>.shaclc</code> file and an associated <code>.ttl</code> file.
-				Parsing the <code>.shaclc</code> file must produce a graph that is isomorphic to the <code>.ttl</code> file.
+				Parsing the <code>.shaclc</code> file must produce a graph that is isomorphic to the <code>.ttl</code> file
+				(Turtle 1.2 [[rdf12-turtle]] for the tests exercising the RDF 1.2 additions:
+				<code>directional-language</code>, <code>triple-term-values</code>, and <code>reifier-shape</code>).
 				The test cases are not normative.
 			</p>
+		</section>
+
+		<section class="informative" id="rdf12-interactions">
+			<h2><span class="new12-flag">1.2</span> Interaction with Existing Constraint Parameters</h2>
+			<ul>
+				<li>
+					<strong><code>languageIn</code></strong> is unchanged: its members remain plain
+					<code>xsd:string</code> basic language ranges per [[BCP47]]. Directional
+					language-tagged values in the data graph are matched on their language tag only
+					(the base direction does not participate in <code>langMatches</code>-style
+					filtering) [[shacl12-core]].
+				</li>
+				<li>
+					<strong><code>uniqueLang</code></strong> is unchanged syntactically; note that under
+					SHACL 1.2 the base direction of <code>rdf:dirLangString</code> values participates in
+					the uniqueness condition, so <code>"1"@ar--rtl</code> and <code>"1"@ar--ltr</code>
+					count as different languages [[shacl12-core]].
+				</li>
+				<li>
+					<strong><code>datatype=</code></strong> may name <code>rdf:dirLangString</code> to
+					constrain values to directional language-tagged strings, e.g.
+					<code>ex:label datatype=rdf:dirLangString .</code> (equivalently, the bare
+					<code>propertyType</code> form <code>ex:label rdf:dirLangString .</code>).
+				</li>
+				<li>
+					<strong><code>pattern</code>, <code>minLength</code>, <code>maxLength</code></strong>
+					apply to triple terms as to other non-literal values: a triple term has no lexical
+					form, so such constraints produce validation results for triple-term value nodes,
+					as defined by [[shacl12-core]].
+				</li>
+			</ul>
 		</section>
 
     <section class="appendix normative" id="iana-considerations">
@@ -606,6 +1089,7 @@ fragment PN_LOCAL_ESC: '\\' ('_' | '~' | '.' | '-' | '!' | '$' | '&amp;' | '\'' 
 			<p>
 			This document is based on the <a href="https://w3c.github.io/shacl/shacl-compact-syntax/">SHACL Compact Syntax, Draft Community Group Report</a> written by <a href="http://knublauch.com/">Holger Knublauch</a> and <a href="https://github.com/VladimirAlexiev/my">Vladimir Alexiev</a>.
 			</p>
+			<p>
 				This document is heavily inspired by the <a href="http://shex.io/shex-semantics/#shexc">ShEx Compact Syntax</a>,
 				a version of which was provided as input to the RDF Data Shapes Working Group.
 				The IANA Considerations section has been adapted <a href="http://shex.io/shex-semantics/#iana-considerations">from the same document</a>.

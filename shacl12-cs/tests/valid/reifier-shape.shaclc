@@ -1,0 +1,16 @@
+BASE <http://example.org/reifier-shape>
+VERSION "1.2"
+
+PREFIX ex: <http://example.org/test#>
+
+shape ex:TestShape -> ex:Person {
+	ex:age xsd:integer [1..1] reificationRequired=true reifierShape={
+		ex:author IRI [1..1] .
+		ex:date xsd:date [1..1] .
+	} .
+	ex:name xsd:string [1..*] reifierShape=ex:ProvenanceShape .
+}
+
+shape ex:ProvenanceShape {
+	ex:source IRI [1..*] .
+}

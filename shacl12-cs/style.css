@@ -300,3 +300,24 @@ div.syntaxmenu {
     font-weight: bold;
     color: light-dark(#0000a0, #66aaff);
 }
+
+/* Highlight for RDF 1.2 additions */
+.new12 {
+    background-color: light-dark(#e8f4e8, #1e3320);
+}
+
+pre .new12 {
+    display: inline-block;
+    width: 100%;
+}
+
+.new12-flag {
+    background-color: #2e7d32;
+    color: white;
+    font-size: 11px;
+    font-family: sans-serif;
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
